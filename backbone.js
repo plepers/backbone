@@ -1152,6 +1152,7 @@
       params.data = params.data ? {model: params.data} : {};
     }
 
+
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
     // And an `X-HTTP-Method-Override` header.
     if (options.emulateHTTP && (type === 'PUT' || type === 'DELETE' || type === 'PATCH')) {
@@ -1179,8 +1180,14 @@
       };
     }
 
+    var xhr;
     // Make the request, allowing the user to override any Ajax options.
-    var xhr = options.xhr = Backbone.ajax(_.extend(params, options));
+    if (options.usePjax)
+        xhr = Backbone.pjax(_.extend(params, options));
+    else
+        xhr = Backbone.ajax(_.extend(params, options));
+
+    options.xhr = hxr
     model.trigger('request', model, xhr, options);
     return xhr;
   };
@@ -1198,6 +1205,14 @@
   // Override this if you'd like to use a different library.
   Backbone.ajax = function() {
     return Backbone.$.ajax.apply(Backbone.$, arguments);
+  };
+
+  // Set the default implementation of `Backbone.pjax` to proxy through to `$`.
+  // Override this if you'd like to use a different library.
+  Backbone.pjax = function() {
+    if( ! Backbone.$.support.pjax )
+        throw "Backbone.pjax require pjax support"
+    return Backbone.$.pjax.apply(Backbone.$, arguments);
   };
 
   // Backbone.Router
